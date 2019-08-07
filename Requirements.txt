@@ -1,0 +1,6 @@
+twint
+bs4
+youtube-dl
+tqdm
+urltools
+requests
