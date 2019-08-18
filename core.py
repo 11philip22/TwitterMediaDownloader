@@ -66,5 +66,5 @@ def get_content():
 if __name__ == "__main__":
     usernames = get_content()
     location = "./"
-    t = Twitter(output=True, usernames=usernames, location=location)
+    t = Twitter(usernames=usernames, location=location)
     t.main(content)
