@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from twitter import Twitter
+from twitter_threaded import Twitter
 import urltools
 from sys import argv
 
@@ -57,6 +57,6 @@ def get_content():
 
 
 if __name__ == "__main__":
-    t = Twitter(output=True)
     content = get_content()
-    t.main(content)
+    t = Twitter(output=True, usernames=content)
+    t.start()
