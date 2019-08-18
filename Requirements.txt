@@ -4,3 +4,4 @@ youtube-dl
 tqdm
 urltools
 requests
+urllib3

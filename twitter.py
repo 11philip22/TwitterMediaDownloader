@@ -1,17 +1,24 @@
-# Copyright (C) 2019 Philip Woldhek
+# MIT License
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Copyright (c) 2019 Philip
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 import twint
 import os
@@ -21,13 +28,22 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from re import compile
 from tqdm import tqdm
+from threading import Thread
+from queue import Queue
 
 
 class Twitter:
-    def __init__(self, output=False, get_photos=True, get_videos=True):
+    def __init__(self, usernames, location, output=False, get_photos=True,
+                 get_videos=True, ignore_errors=True, print_errors=True):
         self.output = output
         self.get_photos = get_photos
         self.get_videos = get_videos
+        self.queue = Queue()
+        self.crawling = True
+        self.usernames = usernames
+        self.ignore_errors = ignore_errors
+        self.print_errors = print_errors
+        self.location = location
 
     def get_tweets(self, target):
         c = twint.Config()
@@ -63,64 +79,86 @@ class Twitter:
             return
 
     def download_photos(self, target, urls):
-        location = "./downloads/{0}".format(target)
-        photo_location = "{0}/photos".format(location)
-        if not os.path.exists(location):
-            os.mkdir(location)
-        if not os.path.exists(photo_location):
-            os.mkdir(photo_location)
-        if self.output is True and urls:
-            iter_obj = tqdm(urls, desc="{0}: downloading photos".format(target), unit="photos")
-        else:
-            iter_obj = urls
-        for tweet in iter_obj:
-            headers = {
-                'User-Agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'}
-            result = requests.get(tweet, headers)
-            if result.status_code is 200:
-                content = result.content
-                soup = self.get_soup(content)
-                for link in soup.findAll('img', attrs={'src': compile("^https://pbs.twimg.com/media")}):
-                    photo_url = link['src']
-                    url_obj = urlparse(photo_url)
-                    file_name = url_obj.path.replace("/media/", "")
-                    path = "{0}/{1}".format(photo_location, file_name)
-                    if not os.path.isfile(path):
-                        with open(path, "wb") as file:
-                            file.write(requests.get(photo_url).content)
+        if urls:
+            location = "{0}twitter/{1}".format(self.location, target)
+            photo_location = "{0}/photos".format(location)
+            if not os.path.exists(location):
+                os.mkdir(location)
+            if not os.path.exists(photo_location):
+                os.mkdir(photo_location)
+            if self.output is True and urls:
+                iter_obj = tqdm(urls, desc="{0}: downloading photos".format(target), unit="photos")
             else:
-                if self.output is True:
-                    print("Error requesting the webpage: {0}".format(result.status_code))
+                iter_obj = urls
+            for tweet in iter_obj:
+                headers = {
+                    'User-Agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) \
+                        Chrome/74.0.3729.169 Safari/537.36'}
+                result = requests.get(tweet, headers)
+                if result.status_code is 200:
+                    content = result.content
+                    soup = self.get_soup(content)
+                    for link in soup.findAll('img', attrs={'src': compile("^https://pbs.twimg.com/media")}):
+                        photo_url = link['src']
+                        url_obj = urlparse(photo_url)
+                        file_name = url_obj.path.replace("/media/", "")
+                        path = "{0}/{1}".format(photo_location, file_name)
+                        if not os.path.isfile(path):
+                            with open(path, "wb") as file:
+                                file.write(requests.get(photo_url).content)
+                else:
+                    if self.output or self.print_errors is True:
+                        print("Error requesting the webpage: {0}".format(result.status_code))
+                        if self.ignore_errors is False:
+                            exit(1)
 
     def download_videos(self, target, urls):
-        location = "./downloads/{0}".format(target)
-        video_location = "{0}/videos".format(location)
-        if not os.path.exists(location):
-            os.mkdir(location)
-        if not os.path.exists(video_location):
-            os.mkdir(video_location)
-        if self.output is True and urls:
-            iter_obj = tqdm(urls, desc="{0}: downloading videos".format(target), unit="videos")
-        else:
-            iter_obj = urls
-        for tweet in iter_obj:
-            try:
-                ydl_opts = {"outtmpl": "{0}/%(id)s.%(ext)s".format(video_location), "quiet": True}
-                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([tweet,])
-            except youtube_dl.utils.DownloadError as y:
-                if self.output is True:
-                    print(y)
+        if urls:
+            location = "{0}twitter/{1}".format(self.location, target)
+            video_location = "{0}/videos".format(location)
+            if not os.path.exists(location):
+                os.mkdir(location)
+            if not os.path.exists(video_location):
+                os.mkdir(video_location)
+            if self.output is True and urls:
+                iter_obj = tqdm(urls, desc="{0}: downloading videos".format(target), unit="videos")
+            else:
+                iter_obj = urls
+            for tweet in iter_obj:
+                try:
+                    ydl_opts = {"outtmpl": "{0}/%(id)s.%(ext)s".format(video_location), "quiet": True}
+                    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([tweet,])
+                except youtube_dl.utils.DownloadError as y:
+                    if self.output or self.print_errors is True:
+                        print(y)
+                        if self.ignore_errors is False:
+                            exit(1)
 
-    def main(self, usernames):
-        if not os.path.exists("downloads"):
-            os.mkdir("downloads")
-        if not os.path.exists("resume"):
-            os.mkdir("resume")
-        for username in usernames:
-            tweets = self.get_tweets(username)
+    def downloader(self):
+        if not os.path.exists("{0}twitter".format(self.location)):
+            os.mkdir("{0}twitter".format(self.location))
+        while not self.queue.empty() or self.crawling:
+            tweets = self.queue.get()
             if self.get_photos is True:
                 self.download_photos(tweets[0], tweets[1])
             if self.get_videos is True:
                 self.download_videos(tweets[0], tweets[2])
+        if self.output is True:
+            print("Done Downloading!")
+
+    def crawler(self):
+        if not os.path.exists("resume"):
+            os.mkdir("resume")
+        for username in self.usernames:
+            tweets = self.get_tweets(username)
+            self.queue.put(tweets)
+        self.crawling = False
+        print(self.queue)
+        if self.output is True:
+            print("Done crawling!")
+
+    def start(self):
+        Thread(target=self.downloader).start()
+        self.crawler()
