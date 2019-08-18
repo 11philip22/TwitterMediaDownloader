@@ -1,7 +1,8 @@
 twint
 bs4
 youtube-dl
-tqdm
+progressbar2
 urltools
 requests
 urllib3
+blessings
