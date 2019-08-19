@@ -13,6 +13,7 @@ python3 core.py list.txt
 ```
 Dont use the username but the whole link. Like this: https://twitter.com/twitter
 ### todo:
+- [ ] Write queue to file when exit
 - [ ] Detect if the photo is already downloaded before making a request (maybe with the id or something)
 - [x] Make crawling and downloading run at the same time.
 - [ ] Only ignore 403 Error while downloading videos. (does youtube dl only output errors as a string or am i retarded?)
