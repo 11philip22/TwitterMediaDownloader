@@ -21,17 +21,21 @@
 # SOFTWARE.
 
 
-import twint
 import os
-import requests
-import youtube_dl
-from utils import *
-from urllib.parse import urlparse
-from bs4 import BeautifulSoup
+from pickle import dump
+from pickle import load
+from queue import Queue
 from re import compile
 from threading import Thread
-from queue import Queue
+from urllib.parse import urlparse
+
+import requests
+import twint
+import youtube_dl
+from bs4 import BeautifulSoup
 from progressbar import ProgressBar
+
+from utils import *
 
 
 class Twitter(object):
@@ -62,6 +66,7 @@ class Twitter(object):
         c.Store_object = True
         c.Hide_output = True
         c.Media = True
+        write_to_screen(0, 0, "Twitter crawler:")
         write_to_screen(0, 1, "crawling {0}".format(target))
         twint.run.Search(c)
         tweets = twint.output.tweets_list
@@ -90,11 +95,11 @@ class Twitter(object):
             prefix_msg = "{0}: Downloading photos ".format(target)
             with ProgressBar(max_value=len(urls), fd=self.writer, prefix=prefix_msg) as pbar:
                 current_len = 0
+                headers = {
+                    'User-Agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) \
+                        Chrome/74.0.3729.169 Safari/537.36'}
                 for tweet in urls:
-                    headers = {
-                        'User-Agent':
-                            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) \
-                            Chrome/74.0.3729.169 Safari/537.36'}
                     result = requests.get(tweet, headers)
                     if result.status_code is 200:
                         content = result.content
@@ -113,6 +118,7 @@ class Twitter(object):
                             exit(1)
                     current_len += 1
                     pbar.update(current_len)
+                    write_to_screen(0, 3, "Twitter downloader:")
 
     def download_videos(self, target, urls):
         if urls:
@@ -137,6 +143,15 @@ class Twitter(object):
                             exit(1)
                     current_len += 1
                     pbar.update(current_len)
+                    write_to_screen(0, 3, "Twitter downloader:")
+
+    def dump_queue(self):
+        with open("queue", "w") as file:
+            dump(self.queue, file, protocol=4, fix_imports=False)
+
+    def load_queue(self):
+        with open("queue", "r") as file:
+            self.queue = load(file, fix_imports=False, encoding="bytes")
 
     def downloader(self):
         if not os.path.exists("{0}twitter".format(self.location)):
@@ -157,6 +172,10 @@ class Twitter(object):
             self.queue.put(tweets)
         self.crawling = False
         write_to_screen(0, 1, "Done crawling!")
+
+    def start(self):
+        Thread(target=self.downloader).start()
+        self.crawler()
 
     def start(self):
         Thread(target=self.downloader).start()
