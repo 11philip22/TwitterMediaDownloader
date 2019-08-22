@@ -1,3 +1,5 @@
+<img src="https://img.shields.io/github/last-commit/11philip22/twitter-media-downloader"
+
 # twitter-media-downloader
 Downloads photos and videos from twitter. <br/>
 Tested with python3.7 :) <br/>
