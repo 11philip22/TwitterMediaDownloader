@@ -20,9 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from twitter_threaded import Twitter
-import urltools
 from sys import argv
+
+import urltools
+from twitter import Twitter
 
 
 def get_list():

@@ -22,11 +22,14 @@
 
 
 import os
+import signal
+import sys
 from pickle import dump
 from pickle import load
 from queue import Queue
 from re import compile
 from threading import Thread
+from time import sleep
 from urllib.parse import urlparse
 
 import requests
@@ -40,7 +43,7 @@ from utils import *
 
 class Twitter(object):
     def __init__(self, usernames, location, get_videos=True,
-                 ignore_errors=True, get_photos=True):
+                 ignore_errors=True, get_photos=True, output=True):
         self.get_photos = get_photos
         self.get_videos = get_videos
         self.queue = Queue()
@@ -49,6 +52,7 @@ class Twitter(object):
         self.ignore_errors = ignore_errors
         self.location = location
         self.writer = Writer((0, 4))
+        self.output = output
 
     @staticmethod
     def get_soup(html):
@@ -58,16 +62,16 @@ class Twitter(object):
         else:
             return
 
-    @staticmethod
-    def get_tweets(target):
+    def get_tweets(self, target):
         c = twint.Config()
         c.Username = target
         c.Resume = "./resume/{0}_history_ids.txt".format(target)
         c.Store_object = True
         c.Hide_output = True
         c.Media = True
-        write_to_screen(0, 0, "Twitter crawler:")
-        write_to_screen(0, 1, "crawling {0}".format(target))
+        if self.output is True:
+            write_to_screen(0, 0, "Twitter crawler:")
+            write_to_screen(0, 1, "crawling {0}".format(target))
         twint.run.Search(c)
         tweets = twint.output.tweets_list
 
@@ -116,9 +120,10 @@ class Twitter(object):
                         print("Error requesting the webpage: {0}".format(result.status_code))
                         if self.ignore_errors is False:
                             exit(1)
-                    current_len += 1
-                    pbar.update(current_len)
-                    write_to_screen(0, 3, "Twitter downloader:")
+                    if self.output is True:
+                        current_len += 1
+                        pbar.update(current_len)
+                        write_to_screen(0, 3, "Twitter downloader:")
 
     def download_videos(self, target, urls):
         if urls:
@@ -127,7 +132,6 @@ class Twitter(object):
             if not os.path.exists(location):
                 os.mkdir(location)
             if not os.path.exists(video_location):
-
                 os.mkdir(video_location)
             prefix_msg = "{0}: Downloading videos ".format(target)
             with ProgressBar(max_value=len(urls), fd=self.writer, prefix=prefix_msg) as pbar:
@@ -141,9 +145,16 @@ class Twitter(object):
                         print(y)
                         if self.ignore_errors is False:
                             exit(1)
-                    current_len += 1
-                    pbar.update(current_len)
-                    write_to_screen(0, 3, "Twitter downloader:")
+                    if self.output is True:
+                        current_len += 1
+                        pbar.update(current_len)
+                        write_to_screen(0, 3, "Twitter downloader:")
+                    if len(urls) > 200:
+                        sleep(0.5)
+
+    def sigterm_handler(self, signal, frame):
+        self.dump_queue()
+        sys.exit(0)
 
     def dump_queue(self):
         with open("queue", "w") as file:
@@ -162,7 +173,8 @@ class Twitter(object):
                 self.download_photos(tweets[0], tweets[1])
             if self.get_videos is True:
                 self.download_videos(tweets[0], tweets[2])
-        write_to_screen(0, 4, "Done downloading!")
+        if self.output is True:
+            write_to_screen(0, 4, "Done downloading!")
 
     def crawler(self):
         if not os.path.exists("resume"):
@@ -171,12 +183,10 @@ class Twitter(object):
             tweets = self.get_tweets(username)
             self.queue.put(tweets)
         self.crawling = False
-        write_to_screen(0, 1, "Done crawling!")
+        if self.output is True:
+            write_to_screen(0, 1, "Done crawling!")
 
     def start(self):
-        Thread(target=self.downloader).start()
-        self.crawler()
-
-    def start(self):
+        signal.signal(signal.SIGTERM, self.sigterm_handler)
         Thread(target=self.downloader).start()
         self.crawler()
