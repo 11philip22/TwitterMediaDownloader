@@ -32,4 +32,4 @@ Note: the location need to have a trailing /
 - [x] Make crawling and downloading run at the same time.
 - [ ] Only ignore 403 Error while downloading videos. (does youtube dl only output errors as a string or am i retarded?)
 - [ ] When the program stops while downloading photos write the id of the last downloaded photo to the resume file so the crawler knows where it left off.
-- [ ] Use path or something so you can use it on Windows
+- [ ] Use pathlib or something so you can use it on Windows
