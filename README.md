@@ -1,4 +1,5 @@
 ![](https://img.shields.io/github/last-commit/11philip22/twitter-media-downloader)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 # twitter-media-downloader
 Downloads photos and videos from twitter. <br/>
