@@ -5,6 +5,7 @@ Downloads photos and videos from twitter. <br/>
 Tested with python3.7 :) <br/>
 If you have questions, requests or ideas send me a mail or open an issue.
 # Usage
+### Use as program
 Get prompted for input:
 ```
 python3 core.py
