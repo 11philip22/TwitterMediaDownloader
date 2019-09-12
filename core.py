@@ -68,4 +68,4 @@ if __name__ == "__main__":
     usernames = get_content()
     location = "./"
     t = Twitter(usernames=usernames, location=location)
-    t.main(content)
+    t.start()
