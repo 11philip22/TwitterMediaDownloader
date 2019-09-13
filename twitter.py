@@ -31,6 +31,7 @@ from re import compile
 from threading import Thread
 from time import sleep
 from urllib.parse import urlparse
+from pathlib import Path
 
 import requests
 import twint
@@ -50,7 +51,7 @@ class Twitter(object):
         self.crawling = True
         self.usernames = usernames
         self.ignore_errors = ignore_errors
-        self.location = location
+        self.download_location = location
         self.writer = Writer((0, 4))
         self.output = output
 
@@ -90,7 +91,7 @@ class Twitter(object):
 
     def download_photos(self, target, urls):
         if urls:
-            location = "{0}twitter/{1}".format(self.location, target)
+            location = "{0}twitter/{1}".format(self.download_location, target)
             photo_location = "{0}/photos".format(location)
             if not os.path.exists(location):
                 os.mkdir(location)
@@ -127,7 +128,7 @@ class Twitter(object):
 
     def download_videos(self, target, urls):
         if urls:
-            location = "{0}twitter/{1}".format(self.location, target)
+            location = "{0}twitter/{1}".format(self.download_location, target)
             video_location = "{0}/videos".format(location)
             if not os.path.exists(location):
                 os.mkdir(location)
@@ -165,8 +166,8 @@ class Twitter(object):
             self.queue = load(file, fix_imports=False, encoding="bytes")
 
     def downloader(self):
-        if not os.path.exists("{0}twitter".format(self.location)):
-            os.mkdir("{0}twitter".format(self.location))
+        if not os.path.exists("{0}twitter".format(self.download_location)):
+            os.mkdir("{0}twitter".format(self.download_location))
         while not self.queue.empty() or self.crawling:
             tweets = self.queue.get()
             if self.get_photos is True:
