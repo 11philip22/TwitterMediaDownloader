@@ -155,7 +155,6 @@ class Twitter(object):
                         pbar.update(current_len)
                         write_to_screen(0, 3, "Twitter downloader:")
                     if len(urls) > 200:
-                        print("zzzzzzzz")
                         sleep(self.sleeptimer)
 
     def sigterm_handler(self, signal, frame):
