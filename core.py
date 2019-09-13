@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2019 Philip
+# Copyright (c) 2019 Philip Woldhek
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+"""
+This script is a proof of concept.
+I highly encourage you to incorporate the Twitter class in your own program.
+"""
+
 from sys import argv
 
 import urltools
@@ -27,7 +32,7 @@ from twitter import Twitter
 
 
 def get_list():
-    print("Enter/Paste your links")
+    print("Enter/Paste your usernames")
     contents = []
     while True:
         line = input()

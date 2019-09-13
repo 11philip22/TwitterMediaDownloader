@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2019 Philip
+# Copyright (c) 2019 Philip Woldhek
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,8 +45,8 @@ working_dir = os.getcwd()
 
 
 class Twitter(object):
-    def __init__(self, usernames, location, get_videos=True,
-                 ignore_errors=True, get_photos=True, output=True):
+    def __init__(self, usernames, location, get_videos=True, get_photos=True,
+                 ignore_errors=True, sleep_timer=1, output=True):
         self.get_photos = get_photos
         self.get_videos = get_videos
         self.queue = Queue()
@@ -56,6 +56,7 @@ class Twitter(object):
         self.download_folder = Path(location, "twitter")
         self.writer = Writer((0, 4))
         self.output = output
+        self.sleeptimer = sleep_timer
 
     @staticmethod
     def get_soup(html):
@@ -154,7 +155,8 @@ class Twitter(object):
                         pbar.update(current_len)
                         write_to_screen(0, 3, "Twitter downloader:")
                     if len(urls) > 200:
-                        sleep(0.5)
+                        print("zzzzzzzz")
+                        sleep(self.sleeptimer)
 
     def sigterm_handler(self, signal, frame):
         self.dump_queue()
