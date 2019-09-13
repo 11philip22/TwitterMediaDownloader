@@ -191,6 +191,7 @@ class Twitter(object):
             write_to_screen(0, 1, "Done crawling!")
 
     def start(self):
+        os.system("clear")
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         Thread(target=self.downloader).start()
         self.crawler()
