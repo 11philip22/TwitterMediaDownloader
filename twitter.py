@@ -41,6 +41,8 @@ from progressbar import ProgressBar
 
 from utils import *
 
+working_dir = os.getcwd()
+
 
 class Twitter(object):
     def __init__(self, usernames, location, get_videos=True,
@@ -51,7 +53,7 @@ class Twitter(object):
         self.crawling = True
         self.usernames = usernames
         self.ignore_errors = ignore_errors
-        self.download_location = location
+        self.download_folder = Path(location, "twitter")
         self.writer = Writer((0, 4))
         self.output = output
 
@@ -66,7 +68,7 @@ class Twitter(object):
     def get_tweets(self, target):
         c = twint.Config()
         c.Username = target
-        c.Resume = "./resume/{0}_history_ids.txt".format(target)
+        c.Resume = str(Path(working_dir, "resume", "{0}_history_ids.txt".format(target)))
         c.Store_object = True
         c.Hide_output = True
         c.Media = True
@@ -91,12 +93,12 @@ class Twitter(object):
 
     def download_photos(self, target, urls):
         if urls:
-            location = "{0}twitter/{1}".format(self.download_location, target)
-            photo_location = "{0}/photos".format(location)
-            if not os.path.exists(location):
-                os.mkdir(location)
-            if not os.path.exists(photo_location):
-                os.mkdir(photo_location)
+            location = Path(self.download_folder, target)
+            photo_location = Path(location, "photos")
+            if not location.is_dir():
+                location.mkdir()
+            if not photo_location.is_dir():
+                photo_location.mkdir()
             prefix_msg = "{0}: Downloading photos ".format(target)
             with ProgressBar(max_value=len(urls), fd=self.writer, prefix=prefix_msg) as pbar:
                 current_len = 0
@@ -113,7 +115,7 @@ class Twitter(object):
                             photo_url = link['src']
                             url_obj = urlparse(photo_url)
                             file_name = url_obj.path.replace("/media/", "")
-                            path = "{0}/{1}".format(photo_location, file_name)
+                            path = str(Path(photo_location, file_name))
                             if not os.path.isfile(path):
                                 with open(path, "wb") as file:
                                     file.write(requests.get(photo_url).content)
@@ -128,18 +130,19 @@ class Twitter(object):
 
     def download_videos(self, target, urls):
         if urls:
-            location = "{0}twitter/{1}".format(self.download_location, target)
-            video_location = "{0}/videos".format(location)
-            if not os.path.exists(location):
-                os.mkdir(location)
-            if not os.path.exists(video_location):
-                os.mkdir(video_location)
+            location = Path(self.download_folder, target)
+            video_location = Path(location, "videos")
+            if not location.is_dir():
+                location.mkdir()
+            if not video_location.is_dir():
+                video_location.mkdir()
             prefix_msg = "{0}: Downloading videos ".format(target)
             with ProgressBar(max_value=len(urls), fd=self.writer, prefix=prefix_msg) as pbar:
                 current_len = 0
                 for tweet in urls:
                     try:
-                        ydl_opts = {"outtmpl": "{0}/%(id)s.%(ext)s".format(video_location), "quiet": True}
+                        download_path = str(Path(video_location, "%(id)s.%(ext)s"))
+                        ydl_opts = {"outtmpl": download_path, "quiet": True}
                         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                             ydl.download([tweet, ])
                     except youtube_dl.utils.DownloadError as y:
@@ -166,8 +169,8 @@ class Twitter(object):
             self.queue = load(file, fix_imports=False, encoding="bytes")
 
     def downloader(self):
-        if not os.path.exists("{0}twitter".format(self.download_location)):
-            os.mkdir("{0}twitter".format(self.download_location))
+        if not self.download_folder.is_dir():
+            self.download_folder.mkdir()
         while not self.queue.empty() or self.crawling:
             tweets = self.queue.get()
             if self.get_photos is True:
