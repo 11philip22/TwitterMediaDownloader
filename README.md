@@ -22,11 +22,10 @@ from twitter import Twitter
 
 
 usernames = ["username1", "username2", "username3"]
-location = "../Downloads/"
+location = "../Downloads"
 t = Twitter(usernames=usernames, location=location)
 t.start()
 ```
-Note: the location need to have a trailing /
 ### todo:
 - [ ] Write queue to file when exit
 - [ ] Detect if the photo is already downloaded before making a request (maybe with the id or something)
