@@ -1,5 +1,0 @@
-2019-10-01 17:40:20,707 - twitter_media_downloader.module - INFO - Starting twitter module with a queue size of 1
-2019-10-01 17:40:20,709 - twitter_media_downloader.module - INFO - crawling twitter
-2019-10-01 17:41:48,584 - twitter_media_downloader.module - INFO - 0 items left in crawler queue
-2019-10-01 17:41:48,584 - twitter_media_downloader.module - INFO - twitter: downloading 311 photos and 1579 videos
-2019-10-01 17:41:48,587 - twitter_media_downloader.module - INFO - Done crawling!
