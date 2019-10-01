@@ -6,6 +6,11 @@ Downloads photos and videos from twitter. <br/>
 Tested with python3.7 :) <br/>
 If you have questions, requests or ideas send me a mail or open an issue.
 # Usage
+The main branch doesn't support Windows since curses is not included int the windows python libraries.
+If you are using Windows please go to the logger branch. That branch uses logging instead of a curses output and is probably more stable. 
+I wont fix the main branch since this program will be integrated with the Twint project.  
+https://github.com/twintproject/twint-utils
+
 ### Use as program
 Get prompted for input:
 ```
