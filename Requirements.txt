@@ -1,8 +1,5 @@
-twint
-bs4
-youtube-dl
-progressbar2
 urltools
 requests
-urllib3
-blessings
+twint
+bs4
+youtube_dl
