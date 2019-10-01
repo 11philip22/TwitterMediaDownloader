@@ -1,4 +1,3 @@
-
 # MIT License
 #
 # Copyright (c) 2019 Philip Woldhek
@@ -23,7 +22,6 @@
 
 
 from blessings import Terminal
-
 
 term = Terminal()
 

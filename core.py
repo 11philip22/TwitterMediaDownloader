@@ -25,12 +25,13 @@ This script is a proof of concept.
 I highly encourage you to incorporate the Twitter class in your own program.
 """
 
-from sys import argv
 import logging
-from pathlib import Path
 from os import getcwd
+from pathlib import Path
+from sys import argv
 
 import urltools
+
 from twitter import Twitter
 
 log_name = "twitter_media_downloader"
@@ -102,5 +103,5 @@ def get_content():
 if __name__ == "__main__":
     usernames = get_content()
     location = "./"
-    t = Twitter(usernames=usernames, location=location, logger="{0.module}".format(log_name))
+    t = Twitter(usernames=usernames, location=location, logger="{0}.module".format(log_name))
     t.start()
