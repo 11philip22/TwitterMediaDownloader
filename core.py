@@ -59,7 +59,10 @@ def get_content():
             links = list1[:] = [line.rstrip('\n') for line in list1]
             for item in links:
                 if item:
-                    content.append(item)
+                    url_info = urltools.extract(item)
+                    if url_info[4] == str("twitter"):
+                        item = url_info[7].replace("/", "")
+                        content.append(item)
             return content
         except FileNotFoundError:
             print("File {0} not found!".format(argv[1]))
