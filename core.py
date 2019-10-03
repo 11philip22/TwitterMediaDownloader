@@ -89,7 +89,8 @@ def get_content():
             list1 = list(open(file, "r"))
             links = list1[:] = [line.rstrip('\n') for line in list1]
             for item in links:
-                content.append(item)
+                if item:
+                    content.append(item)
             return content
         except FileNotFoundError:
             print("File {0} not found!".format(argv[1]))
