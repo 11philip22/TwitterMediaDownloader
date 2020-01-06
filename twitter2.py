@@ -11,13 +11,14 @@ import requests
 import twint
 import youtube_dl
 from bs4 import BeautifulSoup
+from asyncio import set_event_loop, new_event_loop
 
 
 class TwitterLooter(object):
     crawling = True
     download_queue = Queue()
     working_dir = getcwd()
-    logger = logging.getLogger('Twitter')
+    logger = logging.getLogger('smdl.Twitter')
 
 
 class Target(object):
@@ -25,7 +26,7 @@ class Target(object):
         self.name = name
         self.photo_urls = photo_urls
         self.video_urls = video_urls
-        
+
     def get(self):
         return [self.name, self.photo_urls, self.video_urls]
 
@@ -41,7 +42,7 @@ class Crawler(TwitterLooter):
     def get_tweets(target):
         c = twint.Config()
         c.Username = target
-        c.Resume = str(Path(working_dir, "resume", "{0}_history_ids.txt".format(target)))
+        # c.Resume = str(Path(working_dir, "resume", "{0}_history_ids.txt".format(target)))
         c.Store_object = True
         c.Hide_output = True
         c.Media = True
@@ -78,6 +79,7 @@ class Crawler(TwitterLooter):
             return False
 
     def crawler(self):
+        set_event_loop(new_event_loop())
         while TwitterLooter.crawling:
             if not self.input_queue.qsize() is 0:
                 break
@@ -100,7 +102,8 @@ class Crawler(TwitterLooter):
 
 
 class Downloader(TwitterLooter):
-    def __init__(self, write_logs, get_photos, get_videos, ignore_errors=True, logger=TwitterLooter.logger):
+    def __init__(self, get_photos=True, get_videos=True, ignore_errors=True,
+                 write_logs=True, logger=TwitterLooter.logger):
         self.write_logs = write_logs
         self.get_photos = get_photos
         self.get_videos = get_videos
@@ -118,7 +121,7 @@ class Downloader(TwitterLooter):
             return
 
     def downloader(self, download_folder):
-        self.download_folder = download_folder
+        self.download_folder = Path(download_folder)
         if not self.download_folder.is_dir():
             self.download_folder.mkdir()
         while not self.queue.empty() or self.crawling:
@@ -217,9 +220,8 @@ class Downloader(TwitterLooter):
 
 
 def worker(user_names, location):
-    print(location)
     c = Crawler()
-    d = Downloader
+    d = Downloader()
     Thread(target=c.crawler).start()
     Thread(target=d.downloader, args=[location, ]).start()
     c.put(user_names)
