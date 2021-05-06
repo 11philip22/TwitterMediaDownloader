@@ -1,5 +1,2 @@
-urltools
-requests
 twint
 bs4
-youtube_dl
